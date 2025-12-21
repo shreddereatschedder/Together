@@ -1,7 +1,0 @@
-[00:00:12.364] Server  LOG      ✓ Ready in 11.9s
-[00:00:32.412] Server  LOG      ○ Compiling / ...
-[00:00:35.686] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:00:35.861] Browser DEBUG   [movies] fetchAnimeDefaults start
-[00:00:35.861] Browser DEBUG   [movies] fetchAnimeDefaults start
-[00:00:36.173] Browser DEBUG   [movies] fetchAnimeDefaults got items: 20
-[00:00:36.174] Browser DEBUG   [movies] fetchAnimeDefaults got items: 20
