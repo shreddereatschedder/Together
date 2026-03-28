@@ -3,7 +3,7 @@ import { useEffect, useState } from "react"
 import { supabase, isConfigured } from "../app/lib/supabase"
 import { Plus, Check, Trash2, ListTodo, AlertCircle } from "lucide-react"
 
-
+//hihihi
 
 interface ChecklistItem {
   text: string
