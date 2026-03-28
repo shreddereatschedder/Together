@@ -78,7 +78,7 @@ export default function Games() {
           <p className="text-sm text-muted-foreground">Loading games...</p>
         </div>
       ) : games.length > 0 ? (
-        <div className="space-y-2 pr-1 max-h-[28rem] overflow-y-auto scrollbar-thin">
+        <div className="space-y-2 pr-1 overflow-y-auto scrollbar-thin">
           {visibleGames.map((game) => (
             <div
               key={game.id}
