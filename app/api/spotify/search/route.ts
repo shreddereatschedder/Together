@@ -1,82 +1,93 @@
 import { NextRequest, NextResponse } from "next/server"
+import { auth } from "@/auth"
 
-let accessToken: string | null = null
-let tokenExpiresAt: number = 0
+interface SpotifyArtist {
+  name: string
+}
 
-async function getAccessToken() {
-  // Return cached token if still valid
-  if (accessToken && Date.now() < tokenExpiresAt) {
-    return accessToken
+interface SpotifyImage {
+  url: string
+}
+
+interface SpotifyTrack {
+  id: string
+  name: string
+  artists: SpotifyArtist[]
+  uri?: string
+  external_urls?: {
+    spotify?: string
   }
-
-  const clientId = process.env.SPOTIFY_CLIENT_ID
-  const clientSecret = process.env.SPOTIFY_CLIENT_SECRET
-
-  if (!clientId || !clientSecret) {
-    throw new Error("Spotify credentials not configured")
+  album?: {
+    images?: SpotifyImage[]
   }
+  duration_ms?: number
+}
 
-  const auth = Buffer.from(`${clientId}:${clientSecret}`).toString("base64")
+function mapTrack(track: SpotifyTrack) {
+  return {
+    id: track.id,
+    name: track.name,
+    artists: track.artists.map((a) => a.name).join(", "),
+    uri: track.uri,
+    url: track.external_urls?.spotify,
+    image: track.album?.images?.[0]?.url,
+    duration: track.duration_ms,
+  }
+}
 
-  const response = await fetch("https://accounts.spotify.com/api/token", {
-    method: "POST",
+async function spotifyFetch(url: string, token: string) {
+  const response = await fetch(url, {
     headers: {
-      Authorization: `Basic ${auth}`,
-      "Content-Type": "application/x-www-form-urlencoded",
+      Authorization: `Bearer ${token}`,
     },
-    body: "grant_type=client_credentials",
+    cache: "no-store",
   })
 
-  if (!response.ok) {
-    throw new Error("Failed to get Spotify access token")
+  const raw = await response.text()
+  let data: any = {}
+  try {
+    data = raw ? JSON.parse(raw) : {}
+  } catch {
+    data = {}
   }
 
-  const data = await response.json()
-  accessToken = data.access_token
-  tokenExpiresAt = Date.now() + data.expires_in * 1000
+  if (!response.ok) {
+    const reason =
+      data?.error?.message ||
+      data?.error ||
+      (raw ? `Spotify API request failed: ${raw}` : `Spotify API request failed with status ${response.status}`)
+    throw new Error(String(reason))
+  }
 
-  return accessToken
+  return data
 }
 
 export async function GET(request: NextRequest) {
   try {
+    const session = await auth()
+    const token = session?.accessToken
+    if (!token) {
+      return NextResponse.json({ error: "Not authenticated with Spotify" }, { status: 401 })
+    }
+
     const searchParams = request.nextUrl.searchParams
-    const query = searchParams.get("q")
+    const query = searchParams.get("q")?.trim()
 
     if (!query) {
       return NextResponse.json({ error: "Query parameter required" }, { status: 400 })
     }
 
-    const token = await getAccessToken()
-
-    const response = await fetch(
+    const searchData = await spotifyFetch(
       `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track&limit=10`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
+      token,
     )
 
-    if (!response.ok) {
-      throw new Error("Failed to search Spotify")
-    }
+    const tracks = (searchData?.tracks?.items ?? []).map((track: SpotifyTrack) => mapTrack(track))
 
-    const data = await response.json()
-
-    const songs = data.tracks.items.map((track: any) => ({
-      title: track.name,
-      artist: track.artists.map((a: any) => a.name).join(", "),
-      url: track.external_urls.spotify,
-      image: track.album.images[0]?.url,
-      preview: track.preview_url,
-      id: track.id,
-      duration: track.duration_ms,
-    }))
-
-    return NextResponse.json({ songs })
+    return NextResponse.json({ tracks })
   } catch (error) {
-    console.error("Spotify search error:", error)
-    return NextResponse.json({ error: "Failed to search Spotify" }, { status: 500 })
+    const message = error instanceof Error ? error.message : "Failed to search Spotify"
+    console.error("Spotify search error:", message)
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }

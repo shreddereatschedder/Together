@@ -32,6 +32,8 @@ export default function Games() {
     setFavourites((prev) => (prev.includes(id) ? prev.filter((f) => f !== id) : [...prev, id]))
   }
 
+  const visibleGames = games.slice(0, 6)
+
   return (
     <div className="space-y-4">
       {/* Controls */}
@@ -77,7 +79,7 @@ export default function Games() {
         </div>
       ) : games.length > 0 ? (
         <div className="space-y-2 pr-1 max-h-[28rem] overflow-y-auto scrollbar-thin">
-          {games.map((game) => (
+          {visibleGames.map((game) => (
             <div
               key={game.id}
               className="flex items-center gap-3 p-2.5 bg-muted/50 rounded-xl hover:bg-muted transition-colors group"

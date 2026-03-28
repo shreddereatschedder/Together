@@ -1,6 +1,7 @@
 import type React from "react"
 import type { Metadata } from "next"
 import { Inter, Plus_Jakarta_Sans } from "next/font/google"
+import { AuthSessionProvider } from "@/components/auth-session-provider"
 import "./globals.css"
 
 const inter = Inter({
@@ -26,7 +27,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} ${jakarta.variable} antialiased`}>{children}</body>
+      <body className={`${inter.variable} ${jakarta.variable} antialiased`}>
+        <AuthSessionProvider>{children}</AuthSessionProvider>
+      </body>
     </html>
   )
 }

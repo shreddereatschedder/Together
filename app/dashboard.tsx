@@ -32,13 +32,13 @@ import Wishlist from "../widgets/wishlist"
 
 // Define all widgets with proper icons
 const allWidgets = [
-  { id: "spotify", name: "Music Together", component: <Spotify />, icon: Music },
+  { id: "spinner", name: "Decision Wheel", component: <Spinner />, icon: Sparkles },
   // Move pet and videos to 2nd and 3rd
   { id: "pet", name: "Our Pet", component: <Pet />, icon: PawPrint },
   { id: "youtube", name: "Videos", component: <YouTube />, icon: Youtube },
   { id: "games", name: "Games", component: <Games />, icon: Gamepad2 },
-  // Place spinner and watchlist after games
-  { id: "spinner", name: "Decision Wheel", component: <Spinner />, icon: Sparkles },
+  // Place music and watchlist after games
+  { id: "spotify", name: "Music Together", component: <Spotify />, icon: Music },
   { id: "movies", name: "Watch List", component: <Movies />, icon: Film },
   { id: "checklist", name: "To-Do Together", component: <Checklist />, icon: ListChecks },
   { id: "favourites", name: "Favourites", component: <Favourites />, icon: Star },
