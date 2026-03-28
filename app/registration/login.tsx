@@ -2,19 +2,41 @@
 
 import { FormEvent, useState } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { ArrowRight, Eye, EyeOff, Heart, Lock, Mail, Sparkles } from "lucide-react"
+import { isConfigured, supabase } from "../lib/supabase"
 
 export default function LoginPage() {
 	const [showPassword, setShowPassword] = useState(false)
 	const [isSubmitting, setIsSubmitting] = useState(false)
+	const [email, setEmail] = useState("")
+	const [password, setPassword] = useState("")
+	const [error, setError] = useState<string | null>(null)
+	const router = useRouter()
 
 	async function handleSubmit(e: FormEvent<HTMLFormElement>) {
 		e.preventDefault()
 		setIsSubmitting(true)
+		setError(null)
 
-		// TODO: wire this up to Supabase/Firebase auth
-		await new Promise((resolve) => setTimeout(resolve, 900))
+		if (isConfigured && supabase) {
+			const { error: signInError } = await supabase.auth.signInWithPassword({
+				email,
+				password,
+			})
+
+			if (signInError) {
+				setError(signInError.message)
+				setIsSubmitting(false)
+				return
+			}
+		} else {
+			// Temporary fallback while auth keys are not configured locally.
+			await new Promise((resolve) => setTimeout(resolve, 900))
+		}
+
 		setIsSubmitting(false)
+		router.push("/room")
 	}
 
 	return (
@@ -67,6 +89,8 @@ export default function LoginPage() {
 						</div>
 
 						<form onSubmit={handleSubmit} className="p-6 sm:p-8 space-y-5">
+							{error && <p className="text-sm text-red-600">{error}</p>}
+
 							<div className="space-y-2">
 								<label htmlFor="email" className="text-sm font-medium text-foreground">
 									Email
@@ -76,6 +100,8 @@ export default function LoginPage() {
 									<input
 										id="email"
 										type="email"
+										value={email}
+										onChange={(e) => setEmail(e.target.value)}
 										required
 										placeholder="you@example.com"
 										className="w-full h-11 rounded-xl border border-border bg-background pl-10 pr-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/30"
@@ -98,6 +124,8 @@ export default function LoginPage() {
 									<input
 										id="password"
 										type={showPassword ? "text" : "password"}
+										value={password}
+										onChange={(e) => setPassword(e.target.value)}
 										required
 										placeholder="Enter your password"
 										className="w-full h-11 rounded-xl border border-border bg-background pl-10 pr-11 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/30"
