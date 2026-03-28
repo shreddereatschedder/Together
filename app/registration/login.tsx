@@ -23,11 +23,11 @@ export default function LoginPage() {
         const result = await signIn("credentials", { email, password, redirect: false })
         setIsSubmitting(false)
 
-        if (result?.error) {    
-            alert(result.error)
-        } else {
-            router.push("/")
-        }       
+		if (result?.error) {    
+			alert(result.error)
+		} else {
+			router.push("/room")
+		}       
 	}
 
 	return (
