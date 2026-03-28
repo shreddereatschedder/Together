@@ -34,7 +34,7 @@ function extractTrackId(input: string) {
 }
 
 export default function Spotify({ isFocused }: { isFocused?: boolean }) {
-  const [trackInput, setTrackInput] = useState("https://open.spotify.com/track/4uLU6hMCjMI75M1A2tKUQC")
+  const [trackInput, setTrackInput] = useState("https://open.spotify.com/track/6dOtVTDdiauQNBQEDOtlAB")
 
   const trackId = useMemo(() => extractTrackId(trackInput), [trackInput])
   const embedUrl = useMemo(() => {
