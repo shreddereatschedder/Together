@@ -51,7 +51,11 @@ const themes = [
   { id: "rose-garden", name: "Rose Garden", emoji: "🌹" },
 ]
 
-export default function Dashboard() {
+interface DashboardProps {
+  roomCode?: string
+}
+
+export default function Dashboard({ roomCode }: DashboardProps) {
   const [visibleWidgets, setVisibleWidgets] = useState<string[]>(allWidgets.map((w) => w.id))
   const [currentTheme, setCurrentTheme] = useState("cozy-sunset")
   const [focusWidget, setFocusWidget] = useState<string | null>(null)
@@ -110,7 +114,9 @@ export default function Dashboard() {
               <h1 className="text-3xl sm:text-4xl font-bold text-foreground font-[family-name:var(--font-display)] text-balance">
                 Together
               </h1>
-              <p className="text-sm text-muted-foreground">Connected across the miles</p>
+              <p className="text-sm text-muted-foreground">
+                {roomCode ? `Connected in room ${roomCode}` : "Connected across the miles"}
+              </p>
             </div>
           </div>
 
