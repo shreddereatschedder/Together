@@ -26,7 +26,7 @@ export default function LoginPage() {
         if (result?.error) {    
             alert(result.error)
         } else {
-           console.log("Login successful")
+            router.push("/")
         }       
 	}
 
