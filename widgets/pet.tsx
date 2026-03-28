@@ -1,109 +1,186 @@
 "use client"
-import { useEffect, useState } from "react"
-import { supabase, isConfigured } from "../app/lib/supabase"
-import { Heart, Sparkles, AlertCircle } from "lucide-react"
-import { DogIcon, CatIcon } from "../components/animal-icons"
+import { useEffect, useMemo, useRef, useState } from "react"
+import Image from "next/image"
+import { Heart, Sparkles } from "lucide-react"
+
+import idleCat from "../assets/idle cat.gif"
+import hungryCat from "../assets/hungry cat.gif"
+import eatingCat from "../assets/eating cat.gif"
+import happyCat from "../assets/happy cat.gif"
+import sadCat from "../assets/sad cat.gif"
+import pettingCat from "../assets/petting cat.gif"
+
+type CatState = "idle" | "hungry" | "eating" | "happy" | "sad" | "petting"
+
+const RANDOM_EVENT_MIN_MS = 30_000
+const RANDOM_EVENT_MAX_MS = 60_000
+const EATING_DURATION_MS = 9_000
+const HAPPY_DURATION_MS = 7_000
+const PETTING_DURATION_MS = 6_000
+
+function randomBetween(min: number, max: number) {
+  return Math.floor(Math.random() * (max - min + 1)) + min
+}
 
 export default function Pet() {
-  const [mood, setMood] = useState("happy")
-  const [species, setSpecies] = useState("dog")
+  const [state, setState] = useState<CatState>("idle")
+  const [petName, setPetName] = useState("Cat")
   const [lastFed, setLastFed] = useState<Date | null>(null)
+  const actionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const eventTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
-    if (!supabase || !isConfigured) return
+    const scheduleRandomEvent = () => {
+      const nextIn = randomBetween(RANDOM_EVENT_MIN_MS, RANDOM_EVENT_MAX_MS)
+      eventTimeoutRef.current = setTimeout(() => {
+        // Interrupt only calm states; avoid overriding active user-triggered animations.
+        setState((current) => {
+          if (current === "eating" || current === "hungry" || current === "sad") {
+            return current
+          }
 
-    const channel = supabase
-      .channel("pet")
-      .on("postgres_changes", { event: "*", schema: "public", table: "widgets", filter: "id=eq.pet" }, (payload: any) => {
-        if (payload.new?.mood) setMood(payload.new.mood)
-        if (payload.new?.lastFed) setLastFed(new Date(payload.new.lastFed))
-        if (payload.new?.species) setSpecies(payload.new.species)
-      })
-      .subscribe()
+          return Math.random() < 0.6 ? "hungry" : "sad"
+        })
+        scheduleRandomEvent()
+      }, nextIn)
+    }
 
-    // Initial fetch
-    supabase
-      .from("widgets")
-      .select("mood,lastFed,species")
-      .eq("id", "pet")
-      .single()
-      .then(({ data }: any) => {
-        if (data?.mood) setMood(data.mood)
-        if (data?.lastFed) setLastFed(new Date(data.lastFed))
-        if (data?.species) setSpecies(data.species)
-      })
+    scheduleRandomEvent()
 
     return () => {
-      supabase!.removeChannel(channel)
+      if (actionTimeoutRef.current) {
+        clearTimeout(actionTimeoutRef.current)
+      }
+      if (eventTimeoutRef.current) {
+        clearTimeout(eventTimeoutRef.current)
+      }
     }
   }, [])
 
-  const feedPet = async () => {
-    if (!supabase) return
-    await supabase.from("widgets").update({ mood: "happy", lastFed: new Date().toISOString() }).eq("id", "pet")
-  }
+  const playHappyThenIdle = () => {
+    setState("happy")
 
-  const petPet = async () => {
-    if (!supabase) return
-    await supabase.from("widgets").update({ mood: "loved" }).eq("id", "pet")
-    setTimeout(async () => {
-      await supabase!.from("widgets").update({ mood: "happy" }).eq("id", "pet")
-    }, 3000)
-  }
-
-  const switchSpecies = async (newSpecies: string) => {
-    if (!supabase) {
-      setSpecies(newSpecies)
-      return
+    if (actionTimeoutRef.current) {
+      clearTimeout(actionTimeoutRef.current)
     }
 
-    const previous = species
-    setSpecies(newSpecies)
-    try {
-      await supabase.from("widgets").update({ species: newSpecies }).eq("id", "pet")
-    } catch (e) {
-      setSpecies(previous)
-    }
+    actionTimeoutRef.current = setTimeout(() => {
+      setState("idle")
+    }, HAPPY_DURATION_MS)
   }
 
-  if (!isConfigured) {
-    return (
-      <div className="space-y-4">
-        <div className="flex items-start gap-3 p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
-          <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
-          <div className="flex-1">
-            <p className="text-sm font-medium text-yellow-800 mb-1">Supabase Not Configured</p>
-            <p className="text-xs text-yellow-700">
-              Please add your Supabase environment variables in the Vars section of the sidebar.
-            </p>
-          </div>
-        </div>
-      </div>
-    )
+  const feedPet = () => {
+    setLastFed(new Date())
+    setState("eating")
+
+    if (actionTimeoutRef.current) {
+      clearTimeout(actionTimeoutRef.current)
+    }
+
+    actionTimeoutRef.current = setTimeout(() => {
+      playHappyThenIdle()
+    }, EATING_DURATION_MS)
   }
+
+  const petPet = () => {
+    setState("petting")
+
+    if (actionTimeoutRef.current) {
+      clearTimeout(actionTimeoutRef.current)
+    }
+
+    actionTimeoutRef.current = setTimeout(() => {
+      setState("idle")
+    }, PETTING_DURATION_MS)
+  }
+
+  const stateLabel = useMemo(() => {
+    switch (state) {
+      case "idle":
+        return "Idle"
+      case "hungry":
+        return "Hungry"
+      case "eating":
+        return "Eating"
+      case "happy":
+        return "Happy"
+      case "sad":
+        return "Sad"
+      case "petting":
+        return "Petting"
+    }
+  }, [state])
+
+  const currentGif = useMemo(() => {
+    switch (state) {
+      case "idle":
+        return idleCat
+      case "hungry":
+        return hungryCat
+      case "eating":
+        return eatingCat
+      case "happy":
+        return happyCat
+      case "sad":
+        return sadCat
+      case "petting":
+        return pettingCat
+    }
+  }, [state])
+
+  const displayName = useMemo(() => {
+    const trimmed = petName.trim()
+    return trimmed.length > 0 ? trimmed : "Cat"
+  }, [petName])
+
+  const stateCaption = useMemo(() => {
+    switch (state) {
+      case "idle":
+        return `${displayName} is chilling`
+      case "hungry":
+        return `${displayName} is hungry`
+      case "eating":
+        return `${displayName} is eating`
+      case "happy":
+        return `${displayName} is vibing`
+      case "petting":
+        return `${displayName} is happy`
+      case "sad":
+        return `${displayName} is crashing out`
+    }
+  }, [displayName, state])
 
   return (
     <div className="space-y-4">
-      {/* Pet Display */}
-      <div className="relative p-6 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-2xl text-center">
-        <button
-          onClick={() => switchSpecies(species === "dog" ? "cat" : "dog")}
-          className="absolute top-3 left-3 z-10 px-2 py-1 rounded-full text-xs font-medium bg-muted text-foreground hover:opacity-90 transition"
-          aria-label="Toggle species"
-        >
-          {species === "dog" ? "Dog" : "Cat"}
-        </button>
+      <div className="space-y-2">
+        <label htmlFor="pet-name" className="text-xs font-medium text-muted-foreground">
+          Pet name
+        </label>
+        <input
+          id="pet-name"
+          type="text"
+          value={petName}
+          onChange={(e) => setPetName(e.target.value)}
+          placeholder="Name your cat"
+          className="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none focus:ring-2 focus:ring-primary/30"
+          maxLength={24}
+        />
+      </div>
 
-        <div className="w-24 h-24 mx-auto mb-3 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
-          {species === "dog" ? (
-            <DogIcon size={48} mood={mood} className="text-white" />
-          ) : (
-            <CatIcon size={48} mood={mood} className="text-white" />
-          )}
+      {/* Pet Display */}
+      <div className="relative rounded-2xl bg-gradient-to-br from-primary/10 to-secondary/10 p-4 text-center sm:p-6">
+        <div className="mx-auto mb-3 h-36 w-36 overflow-hidden rounded-2xl border border-border/60 bg-background/70 sm:h-40 sm:w-40">
+          <Image
+            src={currentGif}
+            alt={stateCaption}
+            className="h-full w-full object-cover"
+            unoptimized
+            priority
+          />
         </div>
-        <p className="text-lg font-bold text-foreground capitalize">{mood}</p>
+        <p className="text-lg font-bold text-foreground">{stateCaption}</p>
         {lastFed && <p className="text-xs text-muted-foreground mt-1">Last fed: {lastFed.toLocaleTimeString()}</p>}
-        {mood === "loved" && <Sparkles className="absolute top-4 right-4 w-6 h-6 text-secondary animate-pulse" />}
+        {state === "happy" && <Sparkles className="absolute right-4 top-4 h-6 w-6 animate-pulse text-secondary" />}
       </div>
 
       {/* Action Buttons */}
@@ -124,7 +201,7 @@ export default function Pet() {
         </button>
       </div>
 
-      <p className="text-xs text-center text-muted-foreground">Take care of your virtual pet together</p>
+      <p className="text-xs text-center text-muted-foreground">Idle lasts longest. Hungry or sad can appear every 30-60s.</p>
     </div>
   )
 }
