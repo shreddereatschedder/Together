@@ -3,6 +3,7 @@
 import { FormEvent, useState } from "react"
 import Link from "next/link"
 import { ArrowRight, Eye, EyeOff, Heart, Lock, Mail, Sparkles } from "lucide-react"
+import { signIn } from "next-auth/react";
 
 export default function LoginPage() {
 	const [showPassword, setShowPassword] = useState(false)
@@ -11,11 +12,20 @@ export default function LoginPage() {
 	async function handleSubmit(e: FormEvent<HTMLFormElement>) {
 		e.preventDefault()
 		setIsSubmitting(true)
+        const formData = new FormData(e.currentTarget)
+        const email = formData.get("email") as string
+        const password = formData.get("password") as string
+        const result = await signIn("credentials", { email, password, redirect: false })
+        setIsSubmitting(false)
 
-		// TODO: wire this up to Supabase/Firebase auth
-		await new Promise((resolve) => setTimeout(resolve, 900))
-		setIsSubmitting(false)
+        if (result?.error) {    
+            alert(result.error)
+        } else {
+            // Redirect to dashboard or desired page after successful login
+            window.location.href = "/dashboard"
+        }       
 	}
+
 
 	return (
 		<main className="min-h-screen bg-background p-4 sm:p-6 lg:p-8 transition-colors duration-300">
