@@ -52,13 +52,17 @@ export default function LoginPage() {
 								<Sparkles className="w-3.5 h-3.5" />
 								Couple Space
 							</div>
+							<div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-semibold mb-5">
+								<Sparkles className="w-3.5 h-3.5" />
+								Maintain Friendships
+							</div>
 
 							<h2 className="text-2xl sm:text-3xl font-bold text-foreground leading-tight mb-3 font-[family-name:var(--font-display)]">
 								Log in to your cozy dashboard
 							</h2>
 
 							<p className="text-muted-foreground text-sm sm:text-base leading-relaxed">
-								Keep your playlists, watch list, games, and favourites all in one place — beautifully synced for both of you.
+								Keep your playlists, watch list, games, and favourites all in one place - beautifully synced for both of you.
 							</p>
 						</div>
 
