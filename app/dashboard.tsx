@@ -1,6 +1,5 @@
 "use client"
 import React, { useState, ChangeEvent, useRef } from "react"
-import Link from "next/link"
 import {
   Heart,
   Plus,
@@ -16,7 +15,6 @@ import {
   Star,
   Gift,
   Palette,
-  Link2,
 } from "lucide-react"
 
 // Widgets
@@ -53,11 +51,7 @@ const themes = [
   { id: "rose-garden", name: "Rose Garden", emoji: "🌹" },
 ]
 
-interface DashboardProps {
-  roomCode?: string
-}
-
-export default function Dashboard({ roomCode }: DashboardProps) {
+export default function Dashboard() {
   const [visibleWidgets, setVisibleWidgets] = useState<string[]>(allWidgets.map((w) => w.id))
   const [currentTheme, setCurrentTheme] = useState("cozy-sunset")
   const [focusWidget, setFocusWidget] = useState<string | null>(null)
@@ -116,53 +110,41 @@ export default function Dashboard({ roomCode }: DashboardProps) {
               <h1 className="text-3xl sm:text-4xl font-bold text-foreground font-[family-name:var(--font-display)] text-balance">
                 Together
               </h1>
-              <p className="text-sm text-muted-foreground">
-                {roomCode ? `Connected in room ${roomCode}` : "Connected across the miles"}
-              </p>
+              <p className="text-sm text-muted-foreground">Connected across the miles</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <Link
-              href="/room"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-card rounded-2xl border border-border shadow-sm hover:shadow-md transition-all duration-200 text-sm font-medium text-foreground"
+          {/* Theme Selector */}
+          <div className="relative">
+            <button
+              onClick={() => setShowThemeSelector(!showThemeSelector)}
+              className="flex items-center gap-2 px-4 py-2 bg-card rounded-2xl border border-border shadow-sm hover:shadow-md transition-all duration-200"
             >
-              <Link2 className="w-4 h-4 text-primary" />
-              Test room flow
-            </Link>
+              <Palette className="w-4 h-4 text-primary" />
+              <span className="text-sm font-medium text-foreground">Theme</span>
+              <ChevronDown
+                className={`w-4 h-4 text-muted-foreground transition-transform ${showThemeSelector ? "rotate-180" : ""}`}
+              />
+            </button>
 
-            {/* Theme Selector */}
-            <div className="relative">
-              <button
-                onClick={() => setShowThemeSelector(!showThemeSelector)}
-                className="flex items-center gap-2 px-4 py-2 bg-card rounded-2xl border border-border shadow-sm hover:shadow-md transition-all duration-200"
-              >
-                <Palette className="w-4 h-4 text-primary" />
-                <span className="text-sm font-medium text-foreground">Theme</span>
-                <ChevronDown
-                  className={`w-4 h-4 text-muted-foreground transition-transform ${showThemeSelector ? "rotate-180" : ""}`}
-                />
-              </button>
-
-              {showThemeSelector && (
-                <div className="absolute right-0 mt-2 w-56 bg-card rounded-2xl border border-border shadow-xl p-2 z-50">
-                  {themes.map((theme) => (
-                    <button
-                      key={theme.id}
-                      onClick={() => changeTheme(theme.id)}
-                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 ${
-                        currentTheme === theme.id
-                          ? "bg-primary text-primary-foreground"
-                          : "hover:bg-muted text-foreground"
-                      }`}
-                    >
-                      <span className="text-xl">{theme.emoji}</span>
-                      <span className="text-sm font-medium">{theme.name}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+            {showThemeSelector && (
+              <div className="absolute right-0 mt-2 w-56 bg-card rounded-2xl border border-border shadow-xl p-2 z-50">
+                {themes.map((theme) => (
+                  <button
+                    key={theme.id}
+                    onClick={() => changeTheme(theme.id)}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 ${
+                      currentTheme === theme.id
+                        ? "bg-primary text-primary-foreground"
+                        : "hover:bg-muted text-foreground"
+                    }`}
+                  >
+                    <span className="text-xl">{theme.emoji}</span>
+                    <span className="text-sm font-medium">{theme.name}</span>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 

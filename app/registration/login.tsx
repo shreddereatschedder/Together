@@ -26,11 +26,9 @@ export default function LoginPage() {
         if (result?.error) {    
             alert(result.error)
         } else {
-            // Redirect to dashboard or desired page after successful login
-            window.location.href = "/dashboard"
+            router.push("/")
         }       
 	}
-
 
 	return (
 		<main className="min-h-screen bg-background p-4 sm:p-6 lg:p-8 transition-colors duration-300">
@@ -92,6 +90,7 @@ export default function LoginPage() {
 									<Mail className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
 									<input
 										id="email"
+										name="email"
 										type="email"
 										value={email}
 										onChange={(e) => setEmail(e.target.value)}
@@ -116,6 +115,7 @@ export default function LoginPage() {
 									<Lock className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
 									<input
 										id="password"
+										name="password"
 										type={showPassword ? "text" : "password"}
 										value={password}
 										onChange={(e) => setPassword(e.target.value)}
