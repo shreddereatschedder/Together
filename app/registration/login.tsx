@@ -2,12 +2,17 @@
 
 import { FormEvent, useState } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { ArrowRight, Eye, EyeOff, Heart, Lock, Mail, Sparkles } from "lucide-react"
 import { signIn } from "next-auth/react";
 
 export default function LoginPage() {
 	const [showPassword, setShowPassword] = useState(false)
 	const [isSubmitting, setIsSubmitting] = useState(false)
+	const [email, setEmail] = useState("")
+	const [password, setPassword] = useState("")
+	const [error, setError] = useState<string | null>(null)
+	const router = useRouter()
 
 	async function handleSubmit(e: FormEvent<HTMLFormElement>) {
 		e.preventDefault()
@@ -77,6 +82,8 @@ export default function LoginPage() {
 						</div>
 
 						<form onSubmit={handleSubmit} className="p-6 sm:p-8 space-y-5">
+							{error && <p className="text-sm text-red-600">{error}</p>}
+
 							<div className="space-y-2">
 								<label htmlFor="email" className="text-sm font-medium text-foreground">
 									Email
@@ -86,6 +93,8 @@ export default function LoginPage() {
 									<input
 										id="email"
 										type="email"
+										value={email}
+										onChange={(e) => setEmail(e.target.value)}
 										required
 										placeholder="you@example.com"
 										className="w-full h-11 rounded-xl border border-border bg-background pl-10 pr-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/30"
@@ -108,6 +117,8 @@ export default function LoginPage() {
 									<input
 										id="password"
 										type={showPassword ? "text" : "password"}
+										value={password}
+										onChange={(e) => setPassword(e.target.value)}
 										required
 										placeholder="Enter your password"
 										className="w-full h-11 rounded-xl border border-border bg-background pl-10 pr-11 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/30"
